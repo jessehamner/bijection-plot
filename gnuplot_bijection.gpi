@@ -1,0 +1,91 @@
+#!/usr/bin/gnuplot
+# GNUPlot script to create data for a bijection plot of
+# natural numbers to integers.
+
+# Define the bijection function for the y-axis:
+ypos(x) = ( ( ( (-1.0) ** ((x % 2) + 1) * x) + (x % 2)) / 2)
+
+# Declare drawing styles:
+
+set style circle radius graph 0.007
+set style fill solid 1.0 border -1
+set style arrow 1 nohead lt 1  lc rgb "#bbbbff" back
+
+set style line 1 lt 16 lw 1 lc rgb "#bbbbff" pt 7 ps 3        # light blue lines
+set style line 3 linecolor rgb '#000000' pointtype 7 pointsize 2
+set style line 4 linecolor rgb '#ebac23' pointtype 7 pointsize 1.5
+set style line 5 lc rgb 'gray' lt 1 lw 0.25
+set style line 6 lc rgb 'gray' lt 1 lw 0.25
+set style line 7 lt 16 lw 1 lc "black"
+
+# Set up allll the plot parameters:
+unset label
+unset key
+
+# Set borders and margins:
+set offsets 0,2,0,0
+set border 2
+set lmargin screen 0.1
+set rmargin screen 0.9
+
+# Set axis line styles:
+set xzeroaxis ls 7
+set yzeroaxis ls 7
+
+# Configure axis ranges and tics:
+set tics scale 1.5, 0.5
+set tics nomirror
+
+# Use minor tics:
+set mxtics
+set mytics
+
+# Set axis range and tic locations and spacing:
+set yrange[-5.3:6.3]
+set ytics border in -6,2,6
+
+set xrange[0:11]
+set xtics axis in 2
+
+# Nudge the x-axis tic markers to the right a bit:
+set xtics offset 0.5,0.5
+
+# No secondary axis tics:
+unset y2tics
+unset x2tics
+
+# Draw a background grid using line styles 5 and 6
+set grid xtics ytics mxtics mytics ls 5, ls 6
+
+
+# Make two arrays to hold the bijection data.
+# Store it in an output table.
+# Note GNUPlot uses 1 as index at array start, putting it in the company
+# of R and Fortran and not much else.
+array A[13]
+array B[13]
+A[1] = 0
+B[1] = 0
+do for [x=2:12:1] { A[x] = x-1; B[x] = ypos(x-1) }
+set table "bijection.table"
+set samples 12
+plot [x=0:11](int(x), ypos(int(x)))
+unset table
+
+# Plot the data:
+#
+# Making three plots at once is the only way I have managed to
+# keep the points from being truncated at the x-max limit.
+plot "bijection.table" with lines ls 1, \
+     "bijection.table" with points ls 3, \
+     "bijection.table" with points ls 4
+
+set term png enhanced truecolor font "arial, 14" size 1024, 768
+set output "gnuplot_bijection.png"
+replot
+unset output
+
+# NOTE: Aquaterm doesn't display GNUplot plots faithfully.
+# set terminal aqua
+
+# EOF

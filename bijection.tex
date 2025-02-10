@@ -1,0 +1,134 @@
+\documentclass[12pt]{article}
+
+\usepackage{xcolor}
+\usepackage{amsmath}
+\usepackage{pgf, pgfplots, pgfmath, tikz}
+\usepgflibrary{arrows}
+\usetikzlibrary{arrows.meta}
+\pgfplotsset{compat=1.18}
+
+\begin{document}
+\pagestyle{empty}
+
+% Functions:
+
+\newcommand{\bijection}{
+  $\text{Bijection from the natural numbers to the integers, mapping }
+  2n \text{ to } -n \text{ and } 2n - 1 \text{ to } n, \text{ for } n \ge 0$
+}
+
+
+\newcommand{\bijectionfunction}{
+$y = \frac{1}{2} \times \left[(x \mod 2) + (-1^{((x \mod 2) + 1)} \times x)\right]$
+}
+
+
+\newcommand{\compute}[1]{
+  \pgfmathparse{(((pow(-1, (mod(#1,2) + 1)) * #1) + mod(#1,2)) * 0.5)}
+}
+
+
+\newcommand\maketicsandlabels{
+  % Draw tick marks and X axis labels the hard way:
+  \foreach \xt in {0,2,4,...,10} {
+    \draw[very thin] (\xt, -0.1) -- (\xt, 0.1);
+    \node[anchor=north, xshift=2mm, yshift=-1mm] at (\xt, 0) {$\xt$};
+  }
+
+  % Draw tick marks and Y axis labels the hard way:
+  \foreach \yt in {-4, -2, 2, 4} {
+    \draw[very thin] (-0.1, \yt) -- (0.1, \yt);
+    \node[anchor=east, xshift=-2mm, yshift=0mm] at (0, \yt) {$\yt$};
+  }
+}
+
+
+\newcommand\backgroundgrid{
+  \draw[step=1cm,gray!30,ultra thin]
+    (0,-6) grid (11,6);
+  \draw[Stealth-Stealth] (-0.6,0) -- (11.5,0)
+    node[align=right, yshift=4mm]{$X$};
+  \draw[Stealth-Stealth] (0,-6.4) -- (0,6.4)
+    node[align=center, xshift=-4mm]{$Y$};
+}
+
+
+\newcommand{\plottwo}{
+  \begin{tikzpicture}[
+    domain=0:10,
+    samples at={0,1,2,...,10}
+    ]
+    \tikzset{reg text/.style={black, align=left, anchor=west, xshift=0mm}
+    }
+    \node at (current page.center) {
+      \begin{tikzpicture}
+        \draw[color=blue!80] plot[] file {bijection.table};
+
+        % Make a background grid:
+        \backgroundgrid 
+        % Draw the points using pgfmath computations,
+        % instead of importing them from gnuplot:
+        \foreach \x in {0,1,...,10} {
+            \pgfmathparse{mod(\x,2)}
+            \pgfmathsetmacro\resultpone{\pgfmathresult + 1}
+            \pgfmathsetmacro\resultr{pow(-1,\resultpone) * \x}
+            \pgfmathsetmacro\resulty{(\resultr + \pgfmathresult) * 0.5}
+            \filldraw[color=black, fill=red!60] (\x, \resulty)
+              circle [radius=3pt];
+        }
+        % Add tics and labels, er, the hard way:
+        \maketicsandlabels
+
+        % Add label indicating the math formula:
+        \node[align=left] at (4.75,5.5) {\bijectionfunction};
+    \end{tikzpicture}
+  };  % close out the primary node
+  \end{tikzpicture}
+}
+
+% A truly awful amount of custom specs for the axis environment. Sigh.
+\newcommand\plotone{
+    \begin{tikzpicture}[scale=1.0]
+      \tikzset{
+        reg text/.style={black, align=left, anchor=west, xshift=0mm}
+      }
+      \begin{axis}[
+          width=4.0in,
+          xlabel=$X$,
+          ylabel=$Y$,
+          title={Bijection Plot},
+          axis x line=middle,
+          axis y line=left,
+          xmax=11.0,
+          xtickmin=0,
+          xtickmax=11,
+          ytickmin=-6,
+          ytickmax=6,
+          xmin=0,
+          ymin=-6.0,
+          ymax=6.0,
+          x axis line style={-stealth, shorten >= -5mm},
+          y axis line style={stealth-stealth, shorten >= -10pt, shorten <= -10pt},
+          xlabel style={anchor=south west, at={(ticklabel* cs:1.0)}, xshift=2mm},
+          axis y label/.style={at={(current axis.above origin)},anchor=south},
+          x tick label style = {font=\small, anchor=north, xshift=2mm, yshift=1mm},
+          xminorticks=true,
+          yminorticks=true,
+          minor tick num=1,
+          grid=both,
+          major grid style={very thin, gray!60},
+          minor grid style={ultra thin, gray!40}
+        ]
+        \addplot[blue, mark=*, mark options={color=black, fill=red!60}]
+          table[x=x, y=y] {bijection.asc};
+      \end{axis}
+    \end{tikzpicture}
+}
+
+% Main:
+
+\plotone
+\clearpage
+\plottwo
+
+\end{document}
